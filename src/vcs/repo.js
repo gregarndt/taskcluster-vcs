@@ -164,6 +164,17 @@ export async function sync(cwd, opts={}) {
   await run(cmd, { cwd, retries: 20 });
 }
 
+export async function diff(cwd, project=null) {
+  assert(await fs.exists(cwd), 'Must be run on an existing directory');
+
+  // Ensure the "repo" binary is available...
+  let repoPath = fsPath.join(cwd, 'repo');
+  assert(await fs.exists(repoPath), `${repoPath} must exist`);
+
+  let cmd = `./repo diff ${project}`;
+  await run(cmd, { cwd, retries: 20 });
+}
+
 
 export async function resolveManifestIncludes(path, manifest, seen) {
   seen = seen || new Set();
