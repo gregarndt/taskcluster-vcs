@@ -192,11 +192,11 @@ export async function sync(cwd, opts={}) {
 
   console.log(`[taskcluster-vcs] Project: ${opts.project} Paths: ${projectPaths}`);
 
-  let sizeBefore = getTotalSizeForPaths(projectPaths);
+  let sizeBefore = await getTotalSizeForPaths(projectPaths);
 
   await run(cmd, { cwd, retries: 20 });
 
-  let sizeAfter = getTotalSizeForPaths(projectPaths);
+  let sizeAfter = await getTotalSizeForPaths(projectPaths);
 
   console.log(
     `[taskcluster-vcs] Project: ${opts.project} ` +
