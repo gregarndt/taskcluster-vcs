@@ -28,8 +28,8 @@ run_clone https://hg.mozilla.org/integration/mozilla-inbound
 run_clone https://hg.mozilla.org/integration/mozilla-inbound/
 run_clone https://hg.mozilla.org/integration/gaia
 run_clone https://hg.mozilla.org/integration/gaia-central
-run_clone http://hg.mozilla.org/integration/fx-team/
-run_clone http://hg.mozilla.org/integration/fx-team
+run_clone https://hg.mozilla.org/integration/fx-team/
+run_clone https://hg.mozilla.org/integration/fx-team
 
 
 run_clone https://git.mozilla.org/b2g/B2G.git

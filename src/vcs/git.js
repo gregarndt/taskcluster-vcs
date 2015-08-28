@@ -66,6 +66,7 @@ export async function checkoutRevision(config, cwd, repository, ref, rev) {
   }
   await run(`${config.git} reset --hard`, { cwd });
   await run(`${config.git} checkout ${rev}`, { cwd });
+  await run(`${config.git} merge`, { cwd });
 }
 
 /**

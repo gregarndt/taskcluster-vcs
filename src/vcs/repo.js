@@ -24,6 +24,20 @@ let mkdirp = denodeify(mkdirp_);
 const TEMP_MANIFEST_NAME = '.tc-vcs-manifest';
 const MAX_MANIFEST_INCLUDES = 10;
 
+async function getTotalSizeForPaths(projectPaths) {
+  let size = 0;
+  for (let projectPath of projectPaths) {
+    let cmd = `du -ck ${projectPath} | grep total | cut -f1`;
+    let [stdout] = await run(cmd, {
+      buffer: true,
+      verbose: false
+    });
+    size += parseInt(stdout);
+  };
+
+  return size;
+}
+
 async function resolveManifestPath(cwd, path) {
   if (URL.parse(path).protocol) return path;
   if (await fs.exists(path)) return path;
@@ -137,6 +151,15 @@ export async function init(cwd, manifest, opts={}) {
     cwd
   });
 
+  let manifestContent = await loadManifest(fsPath.join(manifestRepo, manifestPathName));
+  manifestContent = manifestContent.replace("\ufeff", "");
+  this.tcVcsManifest = await parseXML(manifestContent);
+
+  this.projectPaths = {};
+  this.tcVcsManifest.manifest.project.forEach((projectDefinition) => {
+    this.projectPaths[projectDefinition['$'].name] = projectDefinition['$'].path + '.git';
+  });
+
   // XXX: This is an interesting hack to work around the fact that if these
   // files are present ./repo sync will attempt to copy/write to them which
   // will cause races preventing us from safely calling sync concurrently.
@@ -161,20 +184,27 @@ export async function sync(cwd, opts={}) {
 
   let cmd = `./repo sync -j${opts.concurrency}`;
   if (opts.project) cmd += ` ${opts.project}`;
+
+  let projectPaths = [
+    fsPath.join(cwd, '.repo', 'projects', this.projectPaths[opts.project]),
+    fsPath.join(cwd, '.repo', 'project-objects', opts.project + '.git')
+  ];
+
+  console.log(`[taskcluster-vcs] Project: ${opts.project} Paths: ${projectPaths}`);
+
+  let sizeBefore = getTotalSizeForPaths(projectPaths);
+
   await run(cmd, { cwd, retries: 20 });
+
+  let sizeAfter = getTotalSizeForPaths(projectPaths);
+
+  console.log(
+    `[taskcluster-vcs] Project: ${opts.project} ` +
+    `Before Sync (bytes): ${beforeSize} ` +
+    `After Sync (bytes): ${afterSize}` +
+    `Directory sizes are ${beforeSize === afterSize ? 'NOT ' : ''} the same`
+  );
 }
-
-export async function diff(cwd, project=null) {
-  assert(await fs.exists(cwd), 'Must be run on an existing directory');
-
-  // Ensure the "repo" binary is available...
-  let repoPath = fsPath.join(cwd, 'repo');
-  assert(await fs.exists(repoPath), `${repoPath} must exist`);
-
-  let cmd = `./repo diff ${project}`;
-  await run(cmd, { cwd, retries: 20 });
-}
-
 
 export async function resolveManifestIncludes(path, manifest, seen) {
   seen = seen || new Set();

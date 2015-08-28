@@ -162,10 +162,6 @@ export default async function main(config, argv) {
   if (canUseParallelSync) {
     await Promise.all(projects.map(async (project) => {
         let syncStart = Date.now();
-        if (project.name.includes('prebuilts') && project.name.includes('ndk')) {
-          console.log('### GOT NDK OMG');
-          await vcsRepo.diff(args.directory, project.name);
-        }
         await vcsRepo.sync(args.directory, { project: project.name });
         stats.projects[project.name].duration += Date.now() - syncStart
     }));
