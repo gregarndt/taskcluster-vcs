@@ -200,9 +200,9 @@ export async function sync(cwd, opts={}) {
 
   console.log(
     `[taskcluster-vcs] Project: ${opts.project} ` +
-    `Before Sync (bytes): ${beforeSize} ` +
-    `After Sync (bytes): ${afterSize}` +
-    `Directory sizes are ${beforeSize === afterSize ? 'NOT ' : ''} the same`
+    `Before Sync (bytes): ${sizeBefore} ` +
+    `After Sync (bytes): ${sizeAfter}` +
+    `Directory sizes are ${sizeBefore !== sizeAfter ? 'NOT ' : ''} the same`
   );
 }
 
